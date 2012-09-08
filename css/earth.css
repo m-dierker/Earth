@@ -33,13 +33,13 @@ body {
 
 /* Transition animations for the earth */
 .earth-trans {
-    -webkit-transition-property: height, width, background-size;
-    -webkit-transition-duration: 1s, 1s, 1s;
-    -webkit-transition-timing-function: ease, ease, ease;
+    -webkit-transition-property: height, width, background-size, margin;
+    -webkit-transition-duration: 1s, 1s, 1s, 1s;
+    -webkit-transition-timing-function: ease, ease, ease, ease;
 
-    -moz-transition-property: height, width;
-    -moz-transition-duration: 1s, 1s;
-    -moz-transition-timing-function: ease-in, ease-in;
+    -moz-transition-property: height, width, background-size, margin;
+    -moz-transition-duration: 1s, 1s, 1s, 1s;
+    -moz-transition-timing-function: ease, ease, ease, ease;
 }
 
 #right-sidebar {
@@ -103,6 +103,16 @@ body {
     background-clip: padding-box;
 }
 
+#slideshow {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    min-width: 800px;
+    min-height: 600px;
+    z-index: 50;
+    margin: 5% 20% 10% 10%;
+    text-align: center;
+    display:none;
 
 .hide {
     display:none;

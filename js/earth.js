@@ -5,6 +5,7 @@ function FaceEarth() {
     this.fetcher = new EarthFetcher(this);
     this.markers = new Array();
     this.markersByLat = {};
+    this._inSlideshow = false;
 
     var options = {
         zoom: .1,
@@ -96,7 +97,6 @@ FaceEarth.prototype.logout = function() {
     this.friends = {};
 
     this._facebookSetup = false;
-    this._activeMarker = null;
 
     for (var marker_key in this.markers) {
         this.markers[marker_key].enabled = false;
@@ -301,7 +301,7 @@ FaceEarth.prototype.markerClicked = function(e) {
     var evt = e;
     if (!markerInfo.clicks || markerInfo.clicks == 0) {
         markerInfo.clicks = 1;
-        markerInfo.timer = setTimeout(function(e){this.clearClicksForMarker(markerInfo.marker, lat, lng, evt);}.bind(this), 150);
+        markerInfo.timer = setTimeout(function(e){this.clearClicksForMarker(markerInfo.marker, lat, lng, evt);}.bind(this), 250);
     } else if (markerInfo.clicks >= 1) {
         markerInfo.clicks = 0;
         if (markerInfo.timer) {
@@ -316,14 +316,69 @@ FaceEarth.prototype.markerClicked = function(e) {
 FaceEarth.prototype.markerDoubleClick = function(e, marker) {
     console.log("Marker double click");
 
-
+    this.setupSlideshow(marker);
 };
 
 FaceEarth.prototype.markerSingleClick = function(e, marker) {
     console.log("Marker single click");
-
-    this._activeMarker = marker;
 };
+
+FaceEarth.prototype.setupSlideshow = function(marker) {
+    this.resetEarth();
+    var css = {
+        height: '40%',
+        width: '40%'
+    };
+    css['margin-right'] = '-100px';
+    css['background-size'] = '1px';
+    $('#earth').css(css);
+
+    this._inSlideshow = true;
+
+    this.slideshowPictures = new Array();
+
+    this.addMarkerPhotosToSlideshow(marker);
+
+    setTimeout(function(){
+        this.adjustEarthBackground();
+        this.earth.handleResize();
+        this.startSlideshow();
+    }.bind(this),1000);
+};
+
+FaceEarth.prototype.startSlideshow = function() {
+    this._slideshowIndex = 0;
+    this.changePictureInSlideshow();
+    $('#slideshow').show();
+    setInterval(this.changePictureInSlideshow.bind(this), 5000);
+}
+
+FaceEarth.prototype.changePictureInSlideshow = function() {
+    var imgIndex = (this._slideshowIndex >= this.slideshowPictures.length ? 0 : this._slideshowIndex);
+
+    var img = this.slideshowPictures[imgIndex];
+
+    var duration = 1000;
+
+    $('#slideshow-img').fadeOut(duration);
+    setTimeout(function(){$('#slideshow-img').attr('src', img.source).fadeIn(duration)}.bind(this), duration);
+}
+
+FaceEarth.prototype.addMarkerPhotosToSlideshow = function(marker) {
+    for (var a = 0; a < marker.photos.length; a++) {
+        this.slideshowPictures.push(marker.photos[a]);
+        this.preloadImage(marker.photos[a].source);
+    }
+}
+
+FaceEarth.prototype.preloadImage = function(url) {
+    var img = new Image();
+    img.src = url;
+}
+
+FaceEarth.prototype.isSlideshow = function() {
+    return this._inSlideshow;
+}
 
 FaceEarth.prototype.openPopup = function(e, marker) {
     if (this._closePopup) {
