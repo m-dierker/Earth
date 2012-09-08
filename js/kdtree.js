@@ -109,7 +109,7 @@ KDTree.prototype.swap = function(one, two) {
  * @param  {Point} a The point to find the closest point to
  */
 KDTree.prototype.findNearestNeighbor = function(target) {
-    return this.fnn(target, 0, this.points.length-1, 0);
+    return this.fnn(new Point(target), 0, this.points.length-1, 0);
 }
 
 KDTree.prototype.fnn = function(target, low, high, d) {
@@ -122,12 +122,12 @@ KDTree.prototype.fnn = function(target, low, high, d) {
 
     var median = this.points[this.pointIndex[mid]];
 
-    var mVal = median.get(d);
-
     // Check for leafness
     if (low >= high) {
         return median;
     }
+
+    var mVal = median.get(d);
 
     var newD = (d + 1) % this.dim;
 
@@ -230,6 +230,79 @@ KDTree.prototype.pointLess = function(a, b) {
 }
 
 /**
+ * Removes a node from the tree
+ * @param  {Array} point the point to remove
+ * @return {Boolean} if the point was removed or not
+ */
+KDTree.prototype.remove = function(point) {
+    return this.rm(new Point(point), 0, this.points.length - 1, 0);
+}
+
+KDTree.prototype.rm = function(target, low, high, d) {
+
+    var mid = Math.floor((low+high) / 2);
+    var newD = (d + 1) % this.dim;
+
+    if (mid < 0) {
+        mid = 0;
+    }
+
+    var median = this.points[this.pointIndex[mid]];
+
+    if (median.equals(target)) {
+        this.processPointRemoval(median, low, high, newD);
+        return true;
+    }
+
+    // Check for leafness
+    if (low >= high) {
+        // if it's a leaf, we aren't finding the other point
+        return false;
+    }
+
+    var mVal = median.get(d);
+
+
+    // target < median, so search the left {
+    if (this.smallerDimVal(target, median, d)) {
+        return this.rm(target, low, mid-1, newD);
+    }
+    // target > median, so search the right
+    else if (this.smallerDimVal(median, target, d)) {
+        return this.rm(target, mid+1, high, newD);
+    }
+}
+
+KDTree.prototype.processPointRemoval = function(point, low, high, d) {
+    var pointIndexInList = -1;
+    for (var a = 0; a < this.points.length; a++) {
+        if (this.points[a].equals(point)) {
+            pointIndexInList = a;
+            break;
+        }
+    }
+
+    console.log("Removing point ", this.points[a]);
+
+    this.points.remove(pointIndexInList);
+
+    for (var a = 0; a < this.pointIndex.length; a++) {
+        if (this.pointIndex[a] == pointIndexInList) {
+            this.pointIndex.remove(a);
+            break;
+        }
+    }
+
+    for (var a = 0; a < this.pointIndex.length; a++) {
+        if (this.pointIndex[a] >= pointIndexInList) {
+            this.pointIndex[a]--;
+        }
+    }
+
+    this.construct(low, high-1, d);
+};
+
+/**
  * Override to truncate a number
  * @param  {int} digits the number of digits to keep
  * @return {int} The truncated number
@@ -238,3 +311,12 @@ Number.prototype.toFixedDown = function(digits) {
   var n = this - Math.pow(10, -digits)/2;
   return n.toFixed(digits);
 }
+
+// Array Remove - By John Resig (MIT Licensed)
+Array.prototype.remove = function(from, to) {
+  var rest = this.slice((to || from) + 1 || this.length);
+  this.length = from < 0 ? this.length + from : from;
+  return this.push.apply(this, rest);
+};
+
+

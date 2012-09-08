@@ -10,31 +10,46 @@
             // This is testing for the KD Tree
             var points = new Array();
 
-            points.push([0, 0, 100]);
-            points.push([0, 100, 100]);
-            points.push([0, 50, 50]);
-            points.push([0, 0, 50]);
-            points.push([100, 0, 100]);
-            points.push([100, 100, 0]);
-            points.push([0, 0, 0]);
-            points.push([0, 50, 0]);
-            points.push([50, 0, 0]);
-            points.push([50, 0, 50]);
-            points.push([100, 0, 0]);
-            points.push([50, 50, 0]);
-            points.push([0, 100, 0]);
-            points.push([50, 50, 50]);
+            points.push([0,0]);
+            points.push([5,3]);
+            points.push([1,5]);
+            points.push([-17,36]);
+            points.push([-7,3]);
+            points.push([4, -9]);
+            points.push([50, 25]);
 
-            var target = new Point([50, 100, 0]);
-            var target2 = new Point([14, 17, 20]);
+            var tree = new KDTree(2, points);
+            var target = [5, 1];
 
-            var tree = new KDTree(3, points);
-
-            // Should be 0, 100, 0
+            // 5,3
             console.log(tree.findNearestNeighbor(target));
 
-            // Should be 0, 0, 0
-            console.log(tree.findNearestNeighbor(target2));
+            console.log(tree);
+
+            var log = '{';
+            for (var a = 0; a < tree.points.length; a++) {
+                var point = tree.points[tree.pointIndex[a]];
+                log += '(' + point.get(0) + ', ' + point.get(1) + ')';
+            }
+
+            log += '}';
+            console.log(log);
+
+            console.log(tree.remove([5,3]));
+
+            console.log(tree);
+
+            // 0,0
+            console.log(tree.findNearestNeighbor(target));
+
+            console.log(tree.remove([0,0]));
+
+            // 1,5
+            console.log(tree.findNearestNeighbor(target));
+
+            console.log(tree.remove([1,5]));
+            console.log(tree.findNearestNeighbor(target));
+
 
         </script>
     </body>

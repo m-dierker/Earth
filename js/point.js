@@ -24,3 +24,17 @@ Point.prototype.get = function(dim) {
 Point.prototype.dim = function() {
     return this.points.length;
 }
+
+Point.prototype.equals = function(point) {
+    if (!point.dim() === this.dim()) {
+        return false;
+    }
+
+    for (var a = 0; a < this.dim(); a++) {
+        if (this.get(a) !== point.get(a)) {
+            return false;
+        }
+    }
+
+    return true;
+}
