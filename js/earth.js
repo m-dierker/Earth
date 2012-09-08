@@ -4,6 +4,7 @@ function FaceEarth() {
 
     this.fetcher = new EarthFetcher(this);
     this.markers = new Array();
+    this.markersByLat = {};
 
     var options = {
         zoom: .1,
@@ -23,8 +24,6 @@ function FaceEarth() {
     this.resetEarth();
 
     setTimeout(this.setup.bind(this), 50);
-
-    // setInterval(this.createMarker.bind(this), 5000);
 }
 
 /**
@@ -70,7 +69,7 @@ FaceEarth.prototype.addFacebookToMap = function(userID) {
             var photo = this.albums[userID][albumID].images[photoID];
 
             if (photo.place && photo.place.location && photo.place.location.latitude && photo.place.location.longitude) {
-                this.createMarker(photo.place.location.latitude, photo.place.location.longitude, '<a href="' + photo.source + '" target="_blank"><img src="' + photo.picture + '"></a>');
+                this.createMarker(photo.place.location.latitude, photo.place.location.longitude, photo);
             }
         }
     }
@@ -95,6 +94,9 @@ FaceEarth.prototype.logout = function() {
     FB.logout();
     this.albums = {};
     this.friends = {};
+
+    this._facebookSetup = false;
+    this._activeMarker = null;
 
     for (var marker_key in this.markers) {
         this.markers[marker_key].enabled = false;
@@ -125,7 +127,6 @@ FaceEarth.prototype.adjustEarthBackground = function(animate) {
         $('#earth').removeClass('earth-trans');
     }
 
-    console.log("Adjusting the earth's background");
     $('#earth').css('background-size', (((6.50/7.21)*window.innerHeight/100)*parseInt($('#earth')[0].style.height)) + 'px');
 
     if (!animate) {
@@ -191,10 +192,8 @@ FaceEarth.prototype.checkFacebook = function() {
             $('#fb-button').fadeIn();
             $('#earth').css('height', '80%').css('width', '80%');;
             this.adjustEarthBackground(true);
-            if (this.markers.length > 0) {
-                setTimeout(this.earth.handleResize.bind(this.earth), 1000);
-            }
         }
+        setTimeout(this.earth.handleResize.bind(this.earth), 1000);
     }.bind(this));
 }
 
@@ -232,22 +231,131 @@ FaceEarth.prototype.hidePromoText = function() {
 }
 
 FaceEarth.prototype.resetEarth = function() {
-    this.earth.flyTo(LOCATION_STARTING[0], LOCATION_STARTING[1], 10000000, 0, 0);
+    this.earth.flyTo(LOCATION_STARTING[0], LOCATION_STARTING[1], 100000000, 0, 0);
+    this.earth.setZoom(2.39315877065304);
     this.spin(.1);
 };
 
-FaceEarth.prototype.createMarker = function(lat, lng, html) {
+FaceEarth.prototype.createMarker = function(lat, lng, photo) {
 
-    var marker = this.earth.initMarker();
+    // If we already have something at the *exact* same spot, use only one marker. Even slightly off won't be caught by this.
+    var marker;
+    if (this.markersByLat[this.latKey(lat,lng)]) {
+        marker = this.markersByLat[this.latKey(lat,lng)].marker;
+        marker.photos.push(photo);
+        return;
+    }
 
+    marker = this.earth.initMarker();
+
+    if (!marker.photos) {
+        marker.photos = new Array();
+    }
+
+    marker.photos.push(photo);
     this.markers.push(marker);
 
-    // var lat = LOCATION_SIEBEL[0] + (Math.random() - .5)/10;
-    // var lng = LOCATION_SIEBEL[1] + (Math.random() - .5)/10;
-
     marker.setPosition(lat, lng);
+    if (!this.markersByLat[this.latKey(lat, lng)]) {
+        this.markersByLat[this.latKey(lat, lng)] = {};
+    }
+    this.markersByLat[this.latKey(lat, lng)].marker = marker;
 
-    marker.bindPopup(html);
+    marker.on('click', function(e) {
+        this.markerClicked(e);
+    }.bind(this));
+
+    marker.on('mouseover', function(e) {
+        this.markerMouseOver(e);
+    }.bind(this));
+
+    marker.on('mouseout', function(e) {
+        this.markerMouseOut(e);
+    }.bind(this));
+}
+
+FaceEarth.prototype.latKey = function(lat, lng) {
+    return 't' + lat + '|' + lng;
+}
+
+FaceEarth.prototype.markerMouseOver = function(e) {
+    var lat = e.latitude;
+    var lng = e.longitude;
+    var markerInfo = this.markersByLat[this.latKey(lat, lng)];
+
+    this.openPopup(e, markerInfo.marker);
+}
+
+FaceEarth.prototype.markerMouseOut = function(e) {
+    var lat = e.latitude;
+    var lng = e.longitude;
+    var markerInfo = this.markersByLat[this.latKey(lat, lng)];
+
+    this._closePopup = setTimeout(function(e){this.closePopup(e, markerInfo.marker)}.bind(this), 1000);
+}
+
+FaceEarth.prototype.markerClicked = function(e) {
+    var lat = e.latitude;
+    var lng = e.longitude;
+    var markerInfo = this.markersByLat[this.latKey(lat, lng)];
+    var evt = e;
+    if (!markerInfo.clicks || markerInfo.clicks == 0) {
+        markerInfo.clicks = 1;
+        markerInfo.timer = setTimeout(function(e){this.clearClicksForMarker(markerInfo.marker, lat, lng, evt);}.bind(this), 150);
+    } else if (markerInfo.clicks >= 1) {
+        markerInfo.clicks = 0;
+        if (markerInfo.timer) {
+            clearTimeout(markerInfo.timer);
+        }
+        this.markerDoubleClick(e, markerInfo.marker);
+    }
+
+    this.killEventWithFire(e);
+}
+
+FaceEarth.prototype.markerDoubleClick = function(e, marker) {
+    console.log("Marker double click");
+
+
+};
+
+FaceEarth.prototype.markerSingleClick = function(e, marker) {
+    console.log("Marker single click");
+
+    this._activeMarker = marker;
+};
+
+FaceEarth.prototype.openPopup = function(e, marker) {
+    if (this._closePopup) {
+        clearTimeout(this._closePopup);
+    }
+
+    var photo = marker.photos[0];
+    $('#marker-popover .popover-title').html(photo.place.name);
+    $('#marker-popover .popover-content').html('<img src="' + photo.picture + '">');
+    $('#marker-popover').fadeIn();
+
+}
+
+FaceEarth.prototype.closePopup = function(e, marker) {
+    if (this._closePopup) {
+        this._closePopup = null;
+    }
+    $('#marker-popover').fadeOut();
+};
+
+FaceEarth.prototype.clearClicksForMarker = function(marker, lat, lng, e) {
+    this.markersByLat[this.latKey(lat, lng)].clicks = 0;
+    this.markerSingleClick(e, marker);
+};
+
+FaceEarth.prototype.killEventWithFire = function(e) {
+    e.cancel=true;
+    e.returnValue=false;
+    e.cancelBubble=true;
+    if (e.stopPropagation) e.stopPropagation();
+    if (e.preventDefault) e.preventDefault();
+    return false;
 }
 
 /**

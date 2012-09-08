@@ -23,6 +23,20 @@
 
             // 5,3
             console.log(tree.findNearestNeighbor(target));
+            console.log(tree);
+
+            var log = '{';
+            for (var a = 0; a < tree.points.length; a++) {
+                var point = tree.points[tree.pointIndex[a]];
+                log += '(' + point.get(0) + ', ' + point.get(1) + ')';
+            }
+
+            log += '}';
+
+            console.log(log);
+
+            // console.log(tree.remove([5, 3]));
+            tree
 
             console.log(tree);
 
@@ -35,20 +49,16 @@
             log += '}';
             console.log(log);
 
-            console.log(tree.remove([5,3]));
-
-            console.log(tree);
-
             // 0,0
             console.log(tree.findNearestNeighbor(target));
 
-            console.log(tree.remove([0,0]));
+            // console.log(tree.remove([0,0]));
 
-            // 1,5
-            console.log(tree.findNearestNeighbor(target));
+            // // 1,5
+            // console.log(tree.findNearestNeighbor(target));
 
-            console.log(tree.remove([1,5]));
-            console.log(tree.findNearestNeighbor(target));
+            // console.log(tree.remove([1,5]));
+            // console.log(tree.findNearestNeighbor(target));
 
 
         </script>

@@ -6,6 +6,8 @@ function Point(points) {
     for (var a = 0; a < points.length; a++) {
         this.points.push(points[a]);
     }
+    this.data = new Array();
+    this.visible = true;
 }
 
 /**

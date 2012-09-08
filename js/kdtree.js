@@ -162,6 +162,7 @@ KDTree.prototype.fnn = function(target, low, high, d) {
     }
 
     if (Math.pow(median.get(d) - target.get(d), 2) <= dist) {
+        console.log("Checking the other side for ", median);
         // There could potentially be a better node in the other substree
         var newPotential;
         if (wentLeft) {
@@ -174,6 +175,9 @@ KDTree.prototype.fnn = function(target, low, high, d) {
         if (this.shouldReplace(target, currentBest, newPotential)) {
             currentBest = newPotential;
         }
+    } else {
+        console.log("Median ", median);
+        console.log("target", target);
     }
 
     return currentBest;
@@ -229,78 +233,135 @@ KDTree.prototype.pointLess = function(a, b) {
     return less;
 }
 
-/**
- * Removes a node from the tree
- * @param  {Array} point the point to remove
- * @return {Boolean} if the point was removed or not
- */
-KDTree.prototype.remove = function(point) {
-    return this.rm(new Point(point), 0, this.points.length - 1, 0);
-}
+// /**
+//  * Removes a node from the tree
+//  * @param  {Array} point the point to remove
+//  * @return {Boolean} if the point was removed or not
+//  */
+// KDTree.prototype.remove = function(point) {
+//     return this.rm(new Point(point), 0, this.points.length - 1, 0);
+// }
 
-KDTree.prototype.rm = function(target, low, high, d) {
+// KDTree.prototype.rm = function(target, low, high, d) {
+//     // If the node doesn't exist
+//     if (low > high) {
+//         return false;
+//     }
 
-    var mid = Math.floor((low+high) / 2);
-    var newD = (d + 1) % this.dim;
+//     var newD = (d + 1) % this.dim;
+//     var mid = Math.floor((low+high) / 2);
 
-    if (mid < 0) {
-        mid = 0;
-    }
+//     if (mid < 0) {
+//         mid = 0;
+//     }
 
-    var median = this.points[this.pointIndex[mid]];
+//     var median = this.points[this.pointIndex[mid]];
 
-    if (median.equals(target)) {
-        this.processPointRemoval(median, low, high, newD);
-        return true;
-    }
+//     if (!median.visible) {
+//         return false;
+//     }
 
-    // Check for leafness
-    if (low >= high) {
-        // if it's a leaf, we aren't finding the other point
-        return false;
-    }
+//     if (this.smallerDimVal(target, median, d)) {
+//         // target < median on D, so go left
+//         this.rm(target, low, mid-1, newD);
+//     } else if (this.smallerDimVal(median, target, d)) {
+//         // median < target on D, so go right
+//         this.rm(target, mid+1, high, newD);
+//     } else {
+//         // The median is the target! Now for the fun part
 
-    var mVal = median.get(d);
+//         var hasLeft = mid - 1 - low >= 0;
+//         var hasRight = high - mid - 1 >= 0;
 
+//         if (!hasLeft && !hasRight) {
+//             // remove the node itself
+//             this.removeNodeAtPoint(mid);
+//             return;
+//         }
 
-    // target < median, so search the left {
-    if (this.smallerDimVal(target, median, d)) {
-        return this.rm(target, low, mid-1, newD);
-    }
-    // target > median, so search the right
-    else if (this.smallerDimVal(median, target, d)) {
-        return this.rm(target, mid+1, high, newD);
-    }
-}
+//         var toRemove;
+//         if (hasRight) {
+//             var replacementObj = this.findMin(mid + 1, high, d, newD);
+//             var replacement = replacementObj['obj'];
+//             var replacementIndex = replacementObj['index'];
 
-KDTree.prototype.processPointRemoval = function(point, low, high, d) {
-    var pointIndexInList = -1;
-    for (var a = 0; a < this.points.length; a++) {
-        if (this.points[a].equals(point)) {
-            pointIndexInList = a;
-            break;
-        }
-    }
+//             this.swap(replacementIndex, median);
 
-    console.log("Removing point ", this.points[a]);
+//             // var point = new Point(replacement.points);
+//             // point.data = replacement.data.slice(0);
+//             // this.points[this.pointIndex[mid]] = point;
 
-    this.points.remove(pointIndexInList);
+//             toRemove = median;
+//         } else {
+//             var replacementObj = this.findMin(mid + 1, high, d, newD);
+//             var replacement = replacementObj['obj'];
+//             var replacementIndex = replacementObj['index'];
 
-    for (var a = 0; a < this.pointIndex.length; a++) {
-        if (this.pointIndex[a] == pointIndexInList) {
-            this.pointIndex.remove(a);
-            break;
-        }
-    }
+//             this.swap(replacementIndex, median);
 
-    for (var a = 0; a < this.pointIndex.length; a++) {
-        if (this.pointIndex[a] >= pointIndexInList) {
-            this.pointIndex[a]--;
-        }
-    }
+//             // var point = new Point(replacement.points);
+//             // point.data = replacement.data.slice(0);
+//             // this.points[this.pointIndex[mid]] = point;
 
-    this.construct(low, high-1, d);
-};
+//             toRemove = median;
+//         }
+
+//         this.rm(toRemove, mid+1, high, newD);
+//     }
+// }
+
+// KDTree.prototype.removeNodeAtPoint = function(pointIndex) {
+//     // this.points.remove(pointIndexInList);
+//     // for (var a = 0; a < this.pointIndex.length; a++) {
+//     //     if (this.pointIndex[a] > pointIndexInList) {
+//     //         this.pointIndex[a]--;
+//     //     } else if (this.pointIndex[a] == pointIndexInList) {
+//     //         this.pointIndex.remove(a);
+//     //         a--;
+//     //     }
+//     // }
+//     this.points[this.pointIndex[pointIndex]].visible = false;
+// }
+
+// KDTree.prototype.findMin = function(low, high, whichAxis, d) {
+//     // If the node doesn't exist
+//     if (low > high) {
+//         return null;
+//     }
+
+//     var newD = (d + 1) % this.dim;
+//     var mid = Math.floor((low+high) / 2);
+
+//     if (mid < 0) {
+//         mid = 0;
+//     }
+
+//     var median = this.points[this.pointIndex[mid]];
+
+//     if (whichAxis == d) {
+//         // if the left node doesn't exist
+//         if (mid - 1 - low < 0) {
+//             // return this point
+//             return {obj: median, index: mid};
+//         } else {
+//             return this.findMin(low, mid-1, whichAxis, newD);
+//         }
+//     } else {
+//         var currentBest = median;
+
+//         var leftBest = this.findMin(low, mid-1, whichAxis, newD);
+//         var rightBest = this.findMin(mid+1, high, whichAxis, newD);
+
+//         if (leftBest && this.smallerDimVal(leftBest, currentBest, whichAxis)) {
+//             currentBest = leftBest;
+//         }
+//         if (rightBest && this.smallerDimVal(rightBest, currentBest, whichAxis)) {
+//             currentBest = rightBest;
+//         }
+
+//         return {obj: currentBest, index: mid};
+//     }
+// }
 
 /**
  * Override to truncate a number
