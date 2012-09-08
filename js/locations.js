@@ -1,0 +1,5 @@
+var LOCATION_SIEBEL = [40.113756, -88.224883];
+var LOCATION_NUGENT = [40.103877, -88.236043];
+
+// A good starting location that avoids the awkward hole
+var LOCATION_STARTING = [22.54121947097717, -89.13224316919268];

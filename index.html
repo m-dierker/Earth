@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>IEEE Hackathon Facebook Awesomesauce</title>
+        <link href="css/earth.css" rel="stylesheet">
+    </head>
+    <body>
+        <div id="container" class="hide">
+            <div id="earth">
+            </div>
+             <div id="fb-button" class="hide">
+                <div class="fb-login-button" size="medium" scope="user_photos,friends_photos,user_hometown,friends_hometown,user_location,friends_location,user_checkins,friends_checkins"></div>
+            </div>
+            <div id="right-sidebar">
+              <div class="button-cover">
+                <img id="add-player-button" src="img/icons/plus.png">
+              </div>
+              <div class="button-cover">
+                <img id="fullscreen-button" src="img/icons/zoom.png">
+              </div>
+              <div class="button-cover">
+                <img id="spin-left-button" src="img/icons/back.png">
+              </div>
+              <div class="button-cover">
+                <img id="spin-right-button" src="img/icons/forward.png">
+              </div>
+              <div class="button-cover">
+                <img id="logout-button" src="img/icons/garbage.png">
+              </div>
+            </div>
+        </div>
+
+        <div id="fb-root"></div>
+
+        <script>
+          window.fbAsyncInit = function() {
+            FB.init({
+              appId      : '431785433525750', // App ID
+              channelUrl : '//my.eatcumtd.com/channel.php', // Channel File
+              status     : true, // check login status
+              cookie     : true, // enable cookies to allow the server to access the session
+              xfbml      : true  // parse XFBML
+            });
+
+            // Additional initialization code here
+          };
+
+          // Load the SDK Asynchronously
+          (function(d){
+             var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+             if (d.getElementById(id)) {return;}
+             js = d.createElement('script'); js.id = id; js.async = true;
+             js.src = "//connect.facebook.net/en_US/all.js";
+             ref.parentNode.insertBefore(js, ref);
+           }(document));
+        </script>
+
+        <script src="http://webglearth.com/api.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+        <script src="js/locations.js"></script>
+        <script src="js/earth.js"></script>
+        <script src="js/fb-fetcher.js"></script>
+    </body>
+</html>
