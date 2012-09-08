@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <title>KD Tree Test</title>
+    </head>
+    <body>
+        <script src="http://my.eatcumtd.com/js/kdtree.js"></script>
+        <script src="http://my.eatcumtd.com/js/point.js"></script>
+        <script type="text/javascript">
+
+            // This is testing for the KD Tree
+            var points = new Array();
+
+            points.push([0, 0, 100]);
+            points.push([0, 100, 100]);
+            points.push([0, 50, 50]);
+            points.push([0, 0, 50]);
+            points.push([100, 0, 100]);
+            points.push([100, 100, 0]);
+            points.push([0, 0, 0]);
+            points.push([0, 50, 0]);
+            points.push([50, 0, 0]);
+            points.push([50, 0, 50]);
+            points.push([100, 0, 0]);
+            points.push([50, 50, 0]);
+            points.push([0, 100, 0]);
+            points.push([50, 50, 50]);
+
+            var target = new Point([50, 100, 0]);
+            var target2 = new Point([14, 17, 20]);
+
+            var tree = new KDTree(3, points);
+
+            // Should be 0, 100, 0
+            console.log(tree.findNearestNeighbor(target));
+
+            // Should be 0, 0, 0
+            console.log(tree.findNearestNeighbor(target2));
+
+        </script>
+    </body>
+</html>
