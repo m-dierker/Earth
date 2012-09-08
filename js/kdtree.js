@@ -10,7 +10,7 @@ function KDTree(dim, points) {
     this.pointIndex = new Array();
 
     for (var a = 0; a < points.length; a++) {
-        this.points.push(new Point(points[a]));
+        this.points.push(points[a]);
         this.pointIndex.push(a);
     }
 

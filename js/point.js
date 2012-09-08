@@ -1,12 +1,12 @@
 /*
 Implements a N-D point
  */
-function Point(points) {
+function Point(points, data) {
     this.points = new Array();
     for (var a = 0; a < points.length; a++) {
         this.points.push(points[a]);
     }
-    this.data = new Array();
+    this.data = data;
     this.visible = true;
 }
 
