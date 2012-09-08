@@ -12,9 +12,10 @@ function FaceEarth() {
 
     $('#earth').resize(function() {
         this.earth.handleResize();
+        this.adjustEarthBackground(false);
     }.bind(this));
 
-    this.buttonSetup();
+    this.listenerSetup();
 
     $('#container').fadeIn(750);
 
@@ -27,9 +28,9 @@ function FaceEarth() {
 }
 
 /**
- * Sets up button listeners
+ * Sets up button listeners and such
  */
-FaceEarth.prototype.buttonSetup = function() {
+FaceEarth.prototype.listenerSetup = function() {
 
     $('#add-player-button').click(function(){
 
@@ -58,6 +59,8 @@ FaceEarth.prototype.buttonSetup = function() {
     $('#logout-button').click(function() {
         this.logout();
     }.bind(this));
+
+    $(document).bind('webkitfullscreenchange mozfullscreenchange fullscreenchange',this.onFullScreenChange.bind(this));
 }
 
 FaceEarth.prototype.addFacebookToMap = function(userID) {
@@ -99,6 +102,37 @@ FaceEarth.prototype.logout = function() {
     }
 
     this.resetEarth();
+};
+
+/**
+ * Called when the user enters or exits full screen mode
+ */
+FaceEarth.prototype.onFullScreenChange = function() {
+    setTimeout(function(){this.adjustEarthBackground(false);}.bind(this), 100);
+}
+
+/**
+ * Adjusts the earth's background we use right now to prevent the awkward hole
+ * @param  {boolean} animate Whether or not to animate the change (on by default)
+ */
+FaceEarth.prototype.adjustEarthBackground = function(animate) {
+    var trans = {};
+
+    if (!animate) {
+        if (this._earthBGTimeout) {
+            clearTimeout(this._earthBGTimeout);
+        }
+        $('#earth').removeClass('earth-trans');
+    }
+
+    console.log("Adjusting the earth's background");
+    $('#earth').css('background-size', (((6.50/7.21)*window.innerHeight/100)*parseInt($('#earth')[0].style.height)) + 'px');
+
+    if (!animate) {
+        this._earthBGTimeout = setTimeout(function() {
+            $('#earth').addClass('earth-trans');
+        }, 1000);
+    }
 };
 
 /**
@@ -151,11 +185,12 @@ FaceEarth.prototype.checkFacebook = function() {
         if(response.status === 'connected') {
             $('#fb-button').fadeOut();
             $('#earth').css('height', '100%').css('width', '100%');;
+            this.adjustEarthBackground(true);
             this.setupFacebook(response.authResponse.userID);
         } else {
             $('#fb-button').fadeIn();
             $('#earth').css('height', '80%').css('width', '80%');;
-
+            this.adjustEarthBackground(true);
             if (this.markers.length > 0) {
                 setTimeout(this.earth.handleResize.bind(this.earth), 1000);
             }
