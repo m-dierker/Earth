@@ -33,7 +33,21 @@ function FaceEarth() {
 FaceEarth.prototype.listenerSetup = function() {
 
     $('#add-player-button').click(function(){
-
+        var friendName = prompt('Enter your friend\'s name');
+        var friendID = null;
+        for (var friendKey in this.friends[this.userID]) {
+            var friend = this.friends[this.userID][friendKey];
+            console.log(friend);
+            if (friend.name == friendName) {
+                friendID = friend.id;
+                console.log(friendID);
+                break;
+            }
+        }
+        if (friendID) {
+            $('#loading').show();
+            this.fetcher.fetchAlbumsForUser(friendID);
+        }
     }.bind(this));
 
     $('#fullscreen-button').click(function() {
@@ -77,6 +91,7 @@ FaceEarth.prototype.addFacebookToMap = function(userID) {
 
     this.stopSpinning();
     this.earth.flyTo(LOCATION_SIEBEL[0], LOCATION_SIEBEL[1], 5000, 0, 0);
+    $('#loading').fadeOut();
 }
 
 /**
@@ -93,12 +108,13 @@ FaceEarth.prototype.setup = function() {
 
 FaceEarth.prototype.logout = function() {
     FB.logout();
+
     this.albums = {};
     this.friends = {};
 
     this._facebookSetup = false;
 
-    // this.exitSlideshow();
+    this.endSlideshow();
 
     for (var marker_key in this.markers) {
         this.markers[marker_key].enabled = false;
@@ -108,7 +124,7 @@ FaceEarth.prototype.logout = function() {
     this.markers = [];
     this.markersByLat = [];
 
-    this.resetEarth();
+    setTimeout(function() {this.resetEarth();this.earth.handleResize();}.bind(this), 1000);
 };
 
 /**
@@ -163,6 +179,9 @@ FaceEarth.prototype.toggleFullscreen = function() {
  */
 FaceEarth.prototype.setupFacebook = function(userID) {
     if (!this._facebookSetup) {
+
+        $('#loading').show();
+
         this._facebookSetup = true;
         this.userID = userID;
 
@@ -362,13 +381,35 @@ FaceEarth.prototype.startSlideshow = function() {
     setInterval(this.changePictureInSlideshow.bind(this), 5000);
 }
 
+FaceEarth.prototype.endSlideshow = function() {
+    if (!this.isSlideshow()) {
+        return;
+    }
+    $('#slideshow').hide();
+    this.slideshowPictures = [];
+    clearTimeout(this._slideshowFade);
+
+    this.resetEarth();
+    var css = {
+        height: '100%',
+        width: '100%'
+    };
+    css['margin-right'] = 'auto';
+    css['background-size'] = '650px';
+    $('#earth').css(css);
+
+    setTimeout(function(){
+        this.adjustEarthBackground();
+        this.earth.handleResize();
+    }.bind(this),1000);
+}
+
 FaceEarth.prototype.parseTree = function(firstMarker) {
 
     var points = new Array();
 
     for (var coordKey in this.markersByLat) {
         marker = this.markersByLat[coordKey].marker;
-        console.log(marker);
 
         if (marker.location.lat != firstMarker.location.lat && marker.location.lng != firstMarker.location.lng) {
             points.push(new Point([marker.location.lat, marker.location.lng], marker.photos));
@@ -402,11 +443,10 @@ FaceEarth.prototype.changePictureInSlideshow = function() {
     var duration = 1000;
 
     $('#slideshow-img').fadeOut(duration);
-    setTimeout(function(){$('#slideshow-img').attr('src', img.source).fadeIn(duration)}.bind(this), duration);
+    this._slideshowFade = setTimeout(function(){$('#slideshow-img').attr('src', img.source).fadeIn(duration)}.bind(this), duration);
 }
 
 FaceEarth.prototype.addMarkerPhotosToSlideshow = function(photos) {
-    console.log(photos);
     for (var a = 0; a < photos.length; a++) {
         this.slideshowPictures.push(photos[a]);
         this.preloadImage(photos[a].source);
